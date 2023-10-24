@@ -32,9 +32,11 @@
 
 float g_up_move = 0.0;
 float g_foword_move = 0.0;
+float g_temp;
 float g_x_move;
 float turn = 0.0;
 bool is_fly; 
+bool is_turn;
 bool left_is_up;
 bool is_up;
 float right_rotate_speed = 0;
@@ -135,8 +137,9 @@ void drawrectangle(float _z) {
 
 void drawbody() { 
     glPushMatrix();
-    glRotatef(turn, 0.0f, 1.0f, 0.0f);
+    //glTranslatef(g_x_move, g_up_move, g_temp); 
     glTranslatef(0.0f, g_up_move, g_foword_move);
+    glRotatef(turn, 0.0f, 1.0f, 0.0f);
     drawcircle(2.0f);
     drawcircle(-2.0f);
     drawrectangle(2.0f);
@@ -146,8 +149,9 @@ void drawbody() {
 void drawleftwing() {
   
   glPushMatrix();
+  // glTranslatef(g_x_move, g_up_move, g_temp); 
+   glTranslatef(0.0f, g_up_move, g_foword_move);
   glRotatef(turn, 0.0f, 1.0f, 0.0f);
-  glTranslatef(0.0f, g_up_move, g_foword_move);
   if (!is_fly)
     glRotatef(left_rotate_speed, 0.0f, 0.0f, 1.0f);
   else if (!left_is_up) {
@@ -177,10 +181,10 @@ void drawleftwing() {
   glBegin(GL_TRIANGLE_STRIP);  // 第二面
   glColor3f(RED);
   glNormal3f(0.0f, -1.0f, 0.0f);
+  glVertex3f(-4.0f, 0.25f, -0.5f);
   glVertex3f(0.0f, 0.25f, -0.5f );
-  glVertex3f(-4.0f, 0.25f , -0.5f );
+  glVertex3f(-4.0f, 0.25f, 0.5f);
   glVertex3f(0.0f, 0.25f , 0.5f );
-  glVertex3f(-4.0f, 0.25f , 0.5f );
   glEnd();
 
   glBegin(GL_TRIANGLE_STRIP);  // 第三面
@@ -218,8 +222,9 @@ void drawleftwing() {
 void drawrightwing() {
 
   glPushMatrix();
-  glRotatef(turn, 0.0f, 1.0f, 0.0f);
+  // glTranslatef(g_x_move, g_up_move, g_temp); 
   glTranslatef(0.0f, g_up_move, g_foword_move);
+  glRotatef(turn, 0.0f, 1.0f, 0.0f);
   if (!is_fly) 
     glRotatef(right_rotate_speed, 0.0f, 0.0f, 1.0f);
   else if ( !is_up) {
@@ -248,10 +253,10 @@ void drawrightwing() {
   glBegin(GL_TRIANGLE_STRIP);  // 第二面
   glColor3f(RED);
   glNormal3f(0.0f, -1.0f, 0.0f);
+  glVertex3f(0.0f, 0.25f, -0.5f);
   glVertex3f(4.0f, 0.25f , -0.5f );
-  glVertex3f(0.0f, 0.25f , -0.5f );
-  glVertex3f(4.0f, 0.25f , 0.5f );
-  glVertex3f(0.0f, 0.25f , 0.5f );
+  glVertex3f(0.0f, 0.25f, 0.5f);
+  glVertex3f(4.0f, 0.25f, 0.5f);
   glEnd();
 
   glBegin(GL_TRIANGLE_STRIP);  // 第三面
@@ -296,8 +301,8 @@ void drawwing() {
 }
  void drawtail() {
   glPushMatrix();
+   glTranslatef(0.0f, g_up_move, g_foword_move);
   glRotatef(turn, 0.0f, 1.0f, 0.0f);
-  glTranslatef(0.0f, g_up_move, g_foword_move);
   glm::vec3 a_vec;
   glm::vec3 b_vec;
   glm::vec3 n_vec;
@@ -396,7 +401,8 @@ void light() {
 int main() {
   is_up = false;
   left_is_up = false;
-  float temp; 
+  float temp;
+  int count = 0;
   initOpenGL();
   GLFWwindow* window = OpenGLContext::getWindow();
 
@@ -435,23 +441,27 @@ int main() {
     is_fly = false;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
       is_fly = true;
-      if ( g_up_move < 5.0 ) 
+      if (g_up_move < 5.0)
         g_up_move = g_up_move + FLYING_SPEED;
       else {
         g_foword_move = g_foword_move - FLYING_SPEED;
-        /* if (g_foword_move < -15.0) {
-          g_up_move = 0;
-          g_foword_move = 0;
-        } // if*/ 
-      } // else 
-    }  // if 
-
+      }  // else
+    }    // if
+    else {
+      if ( g_up_move > 0.0 ) 
+        g_up_move = g_up_move - (FLYING_SPEED/2);
+    } // else 
+    is_turn = false;
      if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      if ( is_fly ) 
+          g_foword_move = g_foword_move + FLYING_SPEED;
       turn = turn + ROTATE_SPEED;
       if (turn >= 360.0) 
           turn = 0.0; 
     }      // if 
     else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+       if (is_fly) 
+           g_foword_move = g_foword_move + FLYING_SPEED;
       turn = turn - ROTATE_SPEED;
       if (turn <= -360.0) 
           turn = 0.0; 
@@ -480,15 +490,13 @@ int main() {
     glEnd();
     glPopMatrix();
 
-    g_x_move = 0.0;
-    //temp = g_x_move;
-   // g_x_move = g_x_move * cos(ANGLE_TO_RADIAN(turn)) + g_foword_move * sin(ANGLE_TO_RADIAN(turn));
-    //g_foword_move = temp * (-sin(ANGLE_TO_RADIAN(turn))) + g_foword_move * cos(ANGLE_TO_RADIAN(turn));
 
    drawbody();
-    drawwing();
-    drawtail();
-
+   drawwing();
+   drawtail();
+   g_x_move = 0.0;
+   g_x_move = g_x_move * cos(ANGLE_TO_RADIAN(turn)) + g_foword_move * sin(ANGLE_TO_RADIAN(turn));
+   g_temp = 0.0 * (-sin(ANGLE_TO_RADIAN(turn))) + g_foword_move * cos(ANGLE_TO_RADIAN(turn));
     /* TODO#3: Render the airplane    
      *       1. Render the body.
      *       2. Render the wings.(Don't forget to assure wings rotate at the center of body.)
