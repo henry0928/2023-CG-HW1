@@ -31,12 +31,10 @@
 #define GREEN 0.18f, 0.8f, 0.443f
 
 float g_up_move = 0.0;
-float g_foword_move = 0.0;
-float g_temp;
-float g_x_move;
+float g_x= 0.0f;
+float g_z = 0.0f;
 float turn = 0.0;
 bool is_fly; 
-bool is_turn;
 bool left_is_up;
 bool is_up;
 float right_rotate_speed = 0;
@@ -98,59 +96,58 @@ void initOpenGL() {
 #endif
 }
 
-void drawcircle(float _z) { 
+void drawcircle(float _z) {
   glBegin(GL_TRIANGLE_FAN);
-  if ( _z < 0 )
+  if (_z < 0)
     glNormal3f(0.0f, 0.0f, 1.0f);
- else 
+  else
     glNormal3f(0.0f, 0.0f, -1.0f);
   glVertex3f(0.0f, 0.5f, _z);
   float p;
   if (_z < 0) {
-    for (int i = CIRCLE_SEGMENT+1; i >= 1; i--) {
+    for (int i = CIRCLE_SEGMENT + 1; i >= 1; i--) {
       p = (float)((float)i * (ANGLE_TO_RADIAN(360.0f) / (float)CIRCLE_SEGMENT));
       glColor3f(BLUE);
-      glVertex3f(RADUIS * cos(p),  0.5 + RADUIS * sin(p), _z );
+      glVertex3f(RADUIS * cos(p), 0.5 + RADUIS * sin(p), _z);
     }  // for
-  } // if 
+  }    // if
   else {
     for (int i = 1; i <= CIRCLE_SEGMENT + 1; i++) {
       p = (float)((float)i * (ANGLE_TO_RADIAN(360.0f) / (float)CIRCLE_SEGMENT));
       glColor3f(BLUE);
-      glVertex3f(RADUIS * cos(p),  0.5 + RADUIS * sin(p), _z );
+      glVertex3f(RADUIS * cos(p), 0.5 + RADUIS * sin(p), _z);
     }  // for
-  } // else 
+  }    // else
   glEnd();
 }
 
-void drawrectangle(float _z) { 
-   glBegin(GL_QUAD_STRIP);
+void drawrectangle(float _z) {
+  glBegin(GL_QUAD_STRIP);
   float p;
-   for (int i = 1; i <= CIRCLE_SEGMENT+1; i++) {
+  for (int i = 1; i <= CIRCLE_SEGMENT + 1; i++) {
     p = (float)((float)i * (ANGLE_TO_RADIAN(360.0f) / (float)CIRCLE_SEGMENT));
-      glColor3f(BLUE);
-      glVertex3f(RADUIS * cos(p), 0.5 + RADUIS * sin(p), _z );
-      glVertex3f(RADUIS * cos(p), 0.5 + RADUIS * sin(p), -_z );
-    } // for 
-   glEnd();
+    glColor3f(BLUE);
+    glVertex3f(RADUIS * cos(p), 0.5 + RADUIS * sin(p), _z);
+    glVertex3f(RADUIS * cos(p), 0.5 + RADUIS * sin(p), -_z);
+  }  // for
+  glEnd();
 }
 
-void drawbody() { 
-    glPushMatrix();
-    //glTranslatef(g_x_move, g_up_move, g_temp); 
-    glTranslatef(0.0f, g_up_move, g_foword_move);
-    glRotatef(turn, 0.0f, 1.0f, 0.0f);
-    drawcircle(2.0f);
-    drawcircle(-2.0f);
-    drawrectangle(2.0f);
-    glPopMatrix();
+void drawbody() {
+  glPushMatrix();
+  glTranslatef(g_x, g_up_move, g_z);
+  glRotatef(turn, 0.0f, 1.0f, 0.0f);
+  drawcircle(2.0f);
+  drawcircle(-2.0f);
+  drawrectangle(2.0f);
+  glPopMatrix();
 }
+
 
 void drawleftwing() {
   
   glPushMatrix();
-  // glTranslatef(g_x_move, g_up_move, g_temp); 
-   glTranslatef(0.0f, g_up_move, g_foword_move);
+  glTranslatef(g_x, g_up_move, g_z);
   glRotatef(turn, 0.0f, 1.0f, 0.0f);
   if (!is_fly)
     glRotatef(left_rotate_speed, 0.0f, 0.0f, 1.0f);
@@ -222,8 +219,7 @@ void drawleftwing() {
 void drawrightwing() {
 
   glPushMatrix();
-  // glTranslatef(g_x_move, g_up_move, g_temp); 
-  glTranslatef(0.0f, g_up_move, g_foword_move);
+  glTranslatef(g_x, g_up_move, g_z);
   glRotatef(turn, 0.0f, 1.0f, 0.0f);
   if (!is_fly) 
     glRotatef(right_rotate_speed, 0.0f, 0.0f, 1.0f);
@@ -301,7 +297,7 @@ void drawwing() {
 }
  void drawtail() {
   glPushMatrix();
-   glTranslatef(0.0f, g_up_move, g_foword_move);
+   glTranslatef(g_x, g_up_move, g_z);
   glRotatef(turn, 0.0f, 1.0f, 0.0f);
   glm::vec3 a_vec;
   glm::vec3 b_vec;
@@ -310,16 +306,7 @@ void drawwing() {
   glm::vec3 pointB(B);
   glm::vec3 pointC(C);
   glm::vec3 pointD(D);
-  /*
-  float A0 = pointA[0] * cos(ANGLE_TO_RADIAN(turn)) + (pointA[2] + g_foword_move)* sin(ANGLE_TO_RADIAN(turn));
-  float A2 = pointA[0] * (-sin(ANGLE_TO_RADIAN(turn))) + (pointA[2] + g_foword_move) * cos(ANGLE_TO_RADIAN(turn));
-  float B0 = pointB[0] * cos(ANGLE_TO_RADIAN(turn)) + (pointB[2] + g_foword_move) * sin(ANGLE_TO_RADIAN(turn));
-  float B2 = pointB[0] * (-sin(ANGLE_TO_RADIAN(turn))) + (pointB[2] + g_foword_move) * cos(ANGLE_TO_RADIAN(turn));
-  float C0 = pointC[0] * cos(ANGLE_TO_RADIAN(turn)) + (pointC[2] + g_foword_move) * sin(ANGLE_TO_RADIAN(turn));
-  float C2 = pointC[0] * (-sin(ANGLE_TO_RADIAN(turn))) + (pointC[2] + g_foword_move) * cos(ANGLE_TO_RADIAN(turn));
-  float D0 = pointD[0] * cos(ANGLE_TO_RADIAN(turn)) + (pointD[2] + g_foword_move) * sin(ANGLE_TO_RADIAN(turn));
-  float D2 = pointD[0] * (-sin(ANGLE_TO_RADIAN(turn))) + (pointD[2] + g_foword_move) * cos(ANGLE_TO_RADIAN(turn));
-  */
+
   glBegin(GL_TRIANGLES);
   glColor3f(GREEN);
   glNormal3f(0.0f, 1.0f, 0.0f);
@@ -401,8 +388,13 @@ void light() {
 int main() {
   is_up = false;
   left_is_up = false;
-  float temp;
   int count = 0;
+  std::vector<std::vector<float>> front_circle;
+  std::vector<std::vector<float>> back_circle;
+  std::vector<float> point(3);
+  std::vector<float> front_circle_heart(3);
+  std::vector<float> back_circle_heart(3);
+
   initOpenGL();
   GLFWwindow* window = OpenGLContext::getWindow();
 
@@ -444,28 +436,23 @@ int main() {
       if (g_up_move < 5.0)
         g_up_move = g_up_move + FLYING_SPEED;
       else {
-        g_foword_move = g_foword_move - FLYING_SPEED;
+        g_z = g_z + FLYING_SPEED * (-cos(ANGLE_TO_RADIAN(turn)));
+        g_x = g_x + FLYING_SPEED * (-sin(ANGLE_TO_RADIAN(turn)));
       }  // else
-    }    // if
+    }  // if
+    else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      turn = turn + ROTATE_SPEED;
+      if (turn >= 360.0) turn = 0.0;
+    }  // if
+    else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+      turn = turn - ROTATE_SPEED;
+      if (turn <= -360.0) turn = 0.0;
+    }  // else if 
     else {
       if ( g_up_move > 0.0 ) 
         g_up_move = g_up_move - (FLYING_SPEED/2);
     } // else 
-    is_turn = false;
-     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-      if ( is_fly ) 
-          g_foword_move = g_foword_move + FLYING_SPEED;
-      turn = turn + ROTATE_SPEED;
-      if (turn >= 360.0) 
-          turn = 0.0; 
-    }      // if 
-    else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-       if (is_fly) 
-           g_foword_move = g_foword_move + FLYING_SPEED;
-      turn = turn - ROTATE_SPEED;
-      if (turn <= -360.0) 
-          turn = 0.0; 
-     } // else if 
+
     /* TODO#4-2: Update 
      *       You may update position and orientation of airplane here or not.
      *       Feel free to not follow TA's structure. However, don't violate the spec. 
@@ -490,13 +477,10 @@ int main() {
     glEnd();
     glPopMatrix();
 
+    drawbody();
+    drawwing();
+    drawtail();
 
-   drawbody();
-   drawwing();
-   drawtail();
-   g_x_move = 0.0;
-   g_x_move = g_x_move * cos(ANGLE_TO_RADIAN(turn)) + g_foword_move * sin(ANGLE_TO_RADIAN(turn));
-   g_temp = 0.0 * (-sin(ANGLE_TO_RADIAN(turn))) + g_foword_move * cos(ANGLE_TO_RADIAN(turn));
     /* TODO#3: Render the airplane    
      *       1. Render the body.
      *       2. Render the wings.(Don't forget to assure wings rotate at the center of body.)
